@@ -1,0 +1,370 @@
+
+<!doctype html>
+<html>
+ <head>
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+  <meta name="Keywords" content="关键词">
+  <meta name="Description" content="描述">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name='viewport' content='width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0'>
+  <title>大战</title>
+  <style>
+    img{border:none;vertical-align:middle;}
+    input{outline:none;}
+    a{text-decoration:none;outline:none;}
+    body{font:0.14rem/1.5 'Microsoft Yahei',sans-serif;/*sans-serif 是手机默认字体*/}
+    *{margin:0;padding:0;-webkit-tap-highlight-color: transparent; box-sizing:border-box;} 
+    html {-webkit-text-size-adjust: none;-webkit-font-smoothing: antialiased;}
+    html,body,.main{width:100%;height:100%;}
+    li{list-style: none;}
+    canvas{display:block;}
+    .main{position:relative;}
+    .m-title{position:absolute;top:0;left:0;width:100%;height:.28rem;line-height:.28rem;padding:.1rem;color:#fff;}
+    .m-left{float:left;}
+    .m-right{float:right;}
+    .cover{position: fixed;left:0;top:0;width:100%;height:100%;background-color: rgba(0,0,0,.8);}
+    .cover-title{margin-top:.2rem;height:1.5rem;line-height:1.5rem;color:#fff;font-size:1rem;text-align:center;}
+    .cover-ul{margin:0 auto;width:80%;}
+    .cover-ul>li{margin-top:1rem;width:100%;height:1.5rem;line-height:1.5rem;
+    background:-webkit-linear-gradient(top,#aaa,#ccc);
+    background:linear-gradient(top,#aaa,#ccc);
+    border-radius:5px;box-shadow: 1px 1px 28px 6px #fff;
+    color:brown;font-size:.8rem;text-align:center;}
+    .money{position: fixed;left: 0;top: 0;width:100%;height:100%;background-color: #fff;z-index: 1000;display: none;}
+    .money img{margin:1.5rem auto;display:block;width:100%;}
+    .cover-h2{color:#fff;text-align:center;}
+    #return{font-size:.5rem;text-align:center;border:1px solid #ccc;background-color: #eee;}
+    #gameOver{position:absolute;top:.4rem;right:.1rem;padding:.1rem;color:#fff;background-color: rgba(0,0,0,.5);border:1px solid #fff;border-radius:.05rem;}
+    .scoreList{position: fixed;left: 0;top: 0;width:100%;height:100%;background-color: rgba(0,0,0,.8);z-index: 1000;display: none;}
+    .scoreList-ul>li{color: #fff;font-size: 0.3rem;text-indent: 1rem;margin-top: .3rem;}
+    #reset{position:fixed;left:0;bottom:0;margin-top: 1rem;width: 100%;height: 1.5rem;line-height: 1.5rem;    background: -webkit-linear-gradient(top,#ddd,#eee);
+    color: cornflowerblue;background: linear-gradient(top,#ddd,#eee);border-radius: 5px;box-shadow: 1px 1px 28px 6px #fff;font-size: .8rem;text-align: center;}
+    .lastName{display:inline-block;min-width:.5rem;text-indent:0;}
+  </style>
+ </head>
+ <body id="container" ontouchmove="event.preventDefault()" >
+    <div id="main" class="main">
+    </div>
+    <div class="cover">
+        <div class="cover-title">手机游戏</div>
+        <div class="cover-h2">1.0.0版</div>
+        <ul class="cover-ul">
+            <li id="sinple">简单难度</li>
+            <li id="hard">地狱难度</li>
+            <li id="cover-money">打赏</li>
+        </ul>
+    </div>
+    <div class="money">
+        <img src="flyImages/IMG_2090.JPG" alt="">
+        <div id="return">返回</div>
+    </div>
+    <div class="scoreList">
+        <ul class="scoreList-ul">
+            <li>第<span>1</span>名:<span class="lastName">zl</span> 分数:<span class="lastScore">54765465465465465</span>分</li>
+        </ul>
+        <div id='reset'>返回首页</div>
+    </div>
+	<script>
+		(function(win,doc){
+			var docEl = doc.documentElement || document.body;//获取HTML标签
+			var container = doc.getElementById('container');//container元素
+			//判断是移动端设备还是PC,移动 就采用'orientationchange',横竖屏事件，PC端就采用onresize，窗口改变时间
+			var resize = 'onorientationchange' in win ? 'orientationchange':'resize';
+			function rem(){
+				//alert(1);
+				docEl.style.fontSize= 100*(container.clientWidth/750)+'px';
+				if(container.clientWidth>750){
+					docEl.style.fontSize=100+'px';
+				}
+			}
+			doc.addEventListener('DOMContentLoaded',rem,false);
+			//监听'DOMContent事件:DOM加载完成执行,如果DOMContent事件，那么执行rem函数
+			//alert(resize);
+			win.addEventListener(resize,rem,false);
+			//win下监听resize事件,如果resize事件，那么执行rem函数
+		})(window,document)
+        
+        var main = document.getElementById('main');
+        var w=main.offsetWidth;//总宽度
+        var h=main.offsetHeight;//总高度
+        var mainArr=[];
+        var timer1='';
+        var timer2='';
+        var timer3='';
+        var timer4='';
+        var score=0;
+        var scoreArr=[{name:'zl',score:87984652132446546}];
+        main.innerHTML='<div class="m-title"><span class="m-left">分数：<b id="score">0</b></span><span class="m-right">♥</span></div><div id="gameOver">结束游戏</div><canvas id="canvas" width="'+w+'" height="'+h+'"></canvas>';//生成canvas画布
+        var canvas = document.getElementById("canvas");
+        if (canvas.getContext) {
+            /*                   0             1              2               3             4               5*/
+            var imgArr=['flyImages/1.jpg','flyImages/3.png','flyImages/4.png','flyImages/6.png','flyImages/8.png','flyImages/5.png'];
+            loadImg(imgArr);
+        }else{
+            alert('朕的浏览器版本太低，朕要升级！');
+        }
+        
+
+        //预加载图片
+        function loadImg(imgArr){
+            var count=0;
+            imgArr.forEach(function(val,i){
+                mainArr[i]=new Image();
+                mainArr[i].src=val;
+                mainArr[i].onload=function(){
+                    count++;
+                    if(count==imgArr.length){
+                        mainFn(mainArr,{start:1});
+                        mainClick();
+                    }
+                }
+            });
+        }
+        //
+        function mainClick(){
+            var money = document.getElementsByClassName('money')[0];
+            var cover = document.getElementsByClassName('cover')[0];
+            var scoreList = document.getElementsByClassName('scoreList')[0];
+            var scoreListUl = document.getElementsByClassName('scoreList-ul')[0];
+            //点击打赏出现打赏
+            document.getElementById('cover-money').onclick=function(){
+                money.style.display='block';
+            }
+            //点击回退
+            document.getElementById('return').onclick=function(){
+                money.style.display='none';
+            }
+            //点击简单
+            document.getElementById('sinple').onclick=function(){
+                cover.style.display='none';
+                mainFn(mainArr,{
+                    myR : 25,//我的飞机半径 
+                    shootR : 30,//子弹宽度
+                    oneShootTime : 20,//多少帧发射一颗子弹
+                    speed : 5,//每帧子弹走几像素
+                    enemySpeed : 1,//敌人每帧走几像素
+                    enemyTime : 50,//多少帧来一个敌人
+                    enemyR : 30,////敌人半径
+                    sR : 50,//爆炸的半径
+                    sArrTime : 30,//爆炸持续几个帧
+                    start : 0,//初始化
+                    line:3//子弹列数
+                });
+            }
+            //点击地狱
+            document.getElementById('hard').onclick=function(){
+                cover.style.display='none';
+                mainFn(mainArr,{
+                    myR : 25,//我的飞机半径 
+                    shootR : 10,//子弹宽度
+                    oneShootTime : 50,//多少帧发射一颗子弹
+                    speed : 1,//每帧子弹走几像素
+                    enemySpeed : 1,//敌人每帧走几像素
+                    enemyTime : 10,//多少帧来一个敌人
+                    enemyR : 10,////敌人半径
+                    sR : 20,//爆炸的半径
+                    sArrTime : 30,//爆炸持续几个帧
+                    start : 0,//初始化
+                    line:1//子弹列数
+                });
+            }
+            //点击结束
+            document.getElementById('gameOver').onclick=function(){
+                document.ontouchstart=null;
+                cancelAnimationFrame(timer1);
+                cancelAnimationFrame(timer2);
+                cancelAnimationFrame(timer3);
+                cancelAnimationFrame(timer4);
+                scoreArr.push({name:'朕',score:score});
+                scoreArr.sort(function(a,b){
+                    return b.score-a.score;
+                });
+                scoreArr = scoreArr.slice(0,10);
+                var htm=[];
+                scoreArr.forEach(function(val,i){
+                    htm.push('<li>第<span>'+(i+1)+'</span>名:<span class="lastName">'+val.name+'</span> 分数:<span class="lastScore">'+val.score+'</span>分</li>');
+                })
+                scoreListUl.innerHTML=htm.join('');
+                scoreList.style.display='block';
+            }
+            //重置返回首页
+            document.getElementById('reset').onclick=function(){
+                scoreList.style.display='none';
+                cover.style.display='block';
+                mainFn(mainArr,{start:1});
+            }
+        }
+        
+        //图片加载完成，现在开始任务
+        function mainFn(mainArr,obj){
+            obj instanceof Object?obj=obj:obj={};
+            var myR         =obj.myR || 25;//我的飞机半径 
+            var shootR      =obj.shootR || 20;//子弹宽度
+            var oneShootTime=obj.oneShootTime || 20;//多少帧发射一颗子弹
+            var speed       =obj.speed || 5;//每帧子弹走几像素
+            var enemySpeed  =obj.enemySpeed || 1;//敌人每帧走几像素
+            var enemyTime   =obj.enemyTime || 50;//多少帧来一个敌人
+            var enemyR      =obj.enemyR || 30;//敌人半径
+            var sR          =obj.sR || 50;//爆炸的半径
+            var sArrTime    =obj.sArrTime || 30;//爆炸持续几个帧
+            var start       =obj.start || 0;//初始化
+            var line        =obj.line || 1;//子弹列数
+            
+            score=0;
+            var shootArr=[];//子弹数组
+            var enemyArr=[];//敌人数组
+            var sArr=[];//爆炸的飞机
+            var x0,y0,x,y
+            ,xMy=w/2//我的飞机位置x
+            ,yMy=h-myR;//我的飞机位置y
+            var scoreDom=document.getElementById('score');
+            
+            var ctx = canvas.getContext("2d");//获取画布操作对象
+            //首页显示静态的图
+            if(start){
+                ctx.clearRect(0,0,w,h);//清空画布
+                ctx.drawImage(mainArr[0],0,0,w,h);//画背景
+                ctx.drawImage(mainArr[4],xMy-myR,yMy-myR,myR*2,myR*2);//画我的飞机
+                return;
+            }
+            timer4=requestAnimationFrame(drawAll);
+            document.ontouchstart=function(e){
+                e=e || window.event;
+                 x0 = e.touches[0].clientX;
+                 y0 = e.touches[0].clientY;
+                 x=x0;
+                 y=y0;
+                 if(Math.sqrt(Math.pow((xMy-x0),2) + Math.pow((yMy-y0),2))<=myR){
+                    document.ontouchmove=function(e){
+                        e=e || window.event;
+                        xMy += e.touches[0].clientX - x;//x的改变的位移
+                        yMy += e.touches[0].clientY - y;
+                        // if(xMy<myR)xMy=myR;
+                        // if(yMy<myR)yMy=myR;
+                        // if(xMy>w-myR)xMy=w-myR;
+                        // if(yMy>h-myR)yMy=h-myR;
+                        x = e.touches[0].clientX;//x现在的位置
+                        y = e.touches[0].clientY; 
+                    }
+                    document.ontouchend=function(e){
+                        document.ontouchmove=null;
+                    }
+                 }
+            }
+            //生成子弹定时器
+            var oneShootCount=0;
+            timer1=requestAnimationFrame(createMyShoot);
+            function createMyShoot(){
+                timer1=requestAnimationFrame(createMyShoot);
+                //生成子弹
+                oneShootCount++;
+                if(oneShootCount>=oneShootTime){
+                    var shoot={x:xMy,y:yMy-myR,speed:speed};
+                        shootArr.push(shoot);
+                    for(var i=1;i<=(line-1)/2;i++){
+                        shoot={x:xMy+shootR*i,y:yMy-myR,speed:speed};
+                        shootArr.push(shoot);
+                        shoot={x:xMy-shootR*i,y:yMy-myR,speed:speed};
+                        shootArr.push(shoot);
+                    }
+                    
+                    oneShootCount=0;
+                }
+                //子弹位置改变
+                shootArr.forEach(function(val,i){
+                   val.x -= 0;
+                   val.y -= val.speed;
+                });
+                shootArr=shootArr.filter(function(val,i){
+                   return val.y>=shootR;
+                });
+            }
+
+            //生成敌人定时器
+            var enemyCount=0;
+            timer2=requestAnimationFrame(createEmemy);
+            function createEmemy(){
+                timer2=requestAnimationFrame(createEmemy);
+                //生成敌人
+                enemyCount++;
+                if(enemyCount>=enemyTime){
+                    var enemy={x:Math.random()*w,y:0,speed:enemySpeed};
+                    if(enemyArr.every(function(val,i){
+                        return Math.sqrt(Math.pow((val.x-enemy.x),2) + Math.pow((val.y-enemy.y),2))>=enemyR*2;
+                    })){
+                        enemyArr.push(enemy);  
+                      //enemyCount=0;//如果是冲突的敌人，就下一次再生成
+                    } 
+                    enemyCount=0;//下一轮再生成敌人
+                }
+                //敌人位置改变
+                enemyArr.forEach(function(val,i){
+                   val.x -= 0;
+                   val.y += val.speed;
+                });
+                enemyArr=enemyArr.filter(function(val,i){
+                   return val.y<=h-enemyR;
+                });
+            }
+
+            //打斗场面
+            timer3=requestAnimationFrame(fight);
+            function fight(){
+                timer3=requestAnimationFrame(fight);
+                //过滤杯击中的飞机和子弹
+                
+                for(var i0=0,len0=enemyArr.length;i0<len0;i0++){
+                    var s=0;
+                    for(var i1=0,len1=shootArr.length;i1<len1;i1++){
+                        if(Math.sqrt(Math.pow((enemyArr[i0].x-shootArr[i1].x),2) + Math.pow((enemyArr[i0].y-shootArr[i1].y),2))<=enemyR+shootR){
+                            enemyArr[i0].remove=1;
+                            shootArr[i1].remove=1;
+                            s=1;
+                        }
+                    }
+                    if(s){
+                        sArr.push({x:enemyArr[i0].x,y:enemyArr[i0].y,count:sArrTime});
+                        score++;
+                        scoreDom.innerHTML=score;
+                    }
+                }
+                enemyArr=enemyArr.filter(function(v){return v.remove!=1;});
+                shootArr=shootArr.filter(function(v){return v.remove!=1;});
+                //过滤爆炸的飞机
+                sArr.forEach(function(val,i){
+                    val.count--;
+                });  
+                sArr=sArr.filter(function(val,i){
+                    return val.count>0;
+                });  
+            }
+
+            //定时器画布刷新
+            function drawAll(){
+                timer4=requestAnimationFrame(drawAll);
+                ctx.clearRect(0,0,w,h);//清空画布
+                ctx.drawImage(mainArr[0],0,0,w,h);//画背景
+                ctx.drawImage(mainArr[4],xMy-myR,yMy-myR,myR*2,myR*2);//画我的飞机
+                //画我的子弹
+                shootArr.forEach(function(val,i){
+                    ctx.drawImage(mainArr[2],val.x-shootR,val.y-shootR,shootR*2,shootR*2);
+                });
+                //画敌人
+                enemyArr.forEach(function(val,i){
+                    ctx.drawImage(mainArr[5],val.x-enemyR,val.y-enemyR,enemyR*2,enemyR*2);
+                });
+                //画爆炸
+                sArr.forEach(function(val,i){
+                    ctx.drawImage(mainArr[1],val.x-sR,val.y-sR,sR*2,sR*2);
+                });
+            }
+        }
+    
+        
+    
+    
+    
+    </script>
+ </body>
+
+</html>
